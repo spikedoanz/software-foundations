@@ -1,6 +1,6 @@
 {
   description = "Coq dev environment";
-  
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -13,11 +13,14 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            coq_8_18
+            coq
+            coqPackages.stdlib
+            coqPackages.vscoq-language-server
           ];
-          
+
           shellHook = ''
-            echo "Coq $(coqc --version | head -1)"
+            export ROCQPATH="${pkgs.coqPackages.stdlib}/lib/coq/${pkgs.coq.coq-version}/user-contrib''${ROCQPATH:+:$ROCQPATH}"
+            echo "Rocq $(coqc --version | head -1)"
           '';
         };
       }

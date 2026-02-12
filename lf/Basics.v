@@ -156,7 +156,7 @@ Definition next_working_day (d:day) : day :=
     examples in Rocq.  First, we can use the command [Compute] to
     evaluate a compound expression involving [next_working_day]. *)
 
-Compute (next_working_day friday).
+Compute (next_working_day monday).
 (* ==> monday : day *)
 
 Compute (next_working_day (next_working_day saturday)).
@@ -208,6 +208,7 @@ Proof. simpl. reflexivity.  Qed.
     for various things in later chapters, but we need to [Require] it here so
     that the grading scripts can use it for internal purposes. *)
 From Stdlib Require Export String.
+
 
 (* ================================================================= *)
 (** ** Booleans *)
