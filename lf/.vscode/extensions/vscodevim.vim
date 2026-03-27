@@ -1,0 +1,1 @@
+/nix/store/y07ywyksxcd8lwyafpi3x4plzbyg9dlk-vscodium-extensions/vscodevim.vim
