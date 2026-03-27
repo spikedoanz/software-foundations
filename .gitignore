@@ -1,0 +1,34 @@
+# Coq/Rocq build artifacts
+*.vo
+*.vo.aux
+*.vok
+*.vos
+*.glob
+.*.aux
+.lia.cache
+.nia.cache
+.Makefile.coq.d
+
+# Generated makefiles
+Makefile.coq
+Makefile.coq.conf
+
+# OCaml extracted files
+*.ml
+*.mli
+
+# OCaml build artifacts
+*.cmi
+*.cmo
+*.cmx
+*.o
+*.a
+*.native
+*.byte
+
+# VSCodium local state
+.vscode/user-data/
+.vscode/extensions/
+
+# Nix
+result
