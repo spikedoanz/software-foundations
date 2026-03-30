@@ -22,6 +22,11 @@ count_admitted() {
 # Chapter order from toc.html
 LF_ORDER=(Basics Induction Lists Poly Tactics Logic IndProp Maps ProofObjects IndPrinciples Rel Imp ImpCEvalFun Auto AltAuto)
 PLF_ORDER=(Equiv Hoare Hoare2 HoareAsLogic Smallstep Types Stlc StlcProp MoreStlc Sub Typechecking Records References RecordSub Norm UseTactics UseAuto)
+VFA_ORDER=(Perm Sort Multiset BagPerm Selection Merge Maps SearchTree ADT Extract Redblack Trie Priqueue Binom Decide Color)
+
+# Global accumulators
+grand_orig=0
+grand_done=0
 
 print_book() {
     local book="$1"
@@ -38,7 +43,6 @@ print_book() {
     for chapter in "${chapters[@]}"; do
         local f="$book/${chapter}.v"
         [ -f "$f" ] || continue
-        name="${chapter}.v"
 
         first_commit=$(git log --diff-filter=A --format="%H" -- "$f" | tail -1)
         [ -z "$first_commit" ] && continue
@@ -55,17 +59,8 @@ print_book() {
         total_orig=$((total_orig + orig))
         total_done=$((total_done + done))
 
-        # build the bar
-        bar=""
-        for ((i = 0; i < done; i++)); do
-            bar="${bar}."
-        done
         remaining=$((orig - done))
-        for ((i = 0; i < remaining; i++)); do
-            bar="${bar}X"
-        done
 
-        chapter="${name%.v}"
         if [ "$done" -eq "$orig" ]; then
             color="$GREEN"
             tag="DONE"
@@ -90,6 +85,9 @@ print_book() {
     pct=0
     [ "$total_orig" -gt 0 ] && pct=$((total_done * 100 / total_orig))
     echo -e "  ${BOLD}Total: ${total_done}/${total_orig} proofs completed (${pct}%)${RESET}"
+
+    grand_orig=$((grand_orig + total_orig))
+    grand_done=$((grand_done + total_done))
 }
 
 echo ""
@@ -97,39 +95,7 @@ echo -e "${BOLD}  Software Foundations Progress${RESET}"
 
 print_book "lf" "Logical Foundations (Vol. 1)" "${LF_ORDER[@]}"
 print_book "plf" "Programming Language Foundations (Vol. 2)" "${PLF_ORDER[@]}"
-
-# grand total - accumulate from print_book via temp files
-grand_orig=0
-grand_done=0
-
-for chapter in "${LF_ORDER[@]}"; do
-    f="lf/${chapter}.v"
-    [ -f "$f" ] || continue
-    first_commit=$(git log --diff-filter=A --format="%H" -- "$f" | tail -1)
-    [ -z "$first_commit" ] && continue
-    orig=$(git show "$first_commit:$f" 2>/dev/null | count_admitted)
-    orig=$((orig + 0))
-    [ "$orig" -eq 0 ] && continue
-    now=$(count_admitted < "$f")
-    now=$((now + 0))
-    done_count=$((orig - now)); [ "$done_count" -lt 0 ] && done_count=0
-    grand_orig=$((grand_orig + orig))
-    grand_done=$((grand_done + done_count))
-done
-for chapter in "${PLF_ORDER[@]}"; do
-    f="plf/${chapter}.v"
-    [ -f "$f" ] || continue
-    first_commit=$(git log --diff-filter=A --format="%H" -- "$f" | tail -1)
-    [ -z "$first_commit" ] && continue
-    orig=$(git show "$first_commit:$f" 2>/dev/null | count_admitted)
-    orig=$((orig + 0))
-    [ "$orig" -eq 0 ] && continue
-    now=$(count_admitted < "$f")
-    now=$((now + 0))
-    done_count=$((orig - now)); [ "$done_count" -lt 0 ] && done_count=0
-    grand_orig=$((grand_orig + orig))
-    grand_done=$((grand_done + done_count))
-done
+print_book "vfa" "Verified Functional Algorithms (Vol. 3)" "${VFA_ORDER[@]}"
 
 echo ""
 gpct=0
@@ -141,8 +107,8 @@ filled=$((grand_done * bar_width / grand_orig))
 empty=$((bar_width - filled))
 echo -ne "  ${BOLD}Overall: ["
 echo -ne "${GREEN}"
-printf '.%.0s' $(seq 1 $filled 2>/dev/null)
+[ "$filled" -gt 0 ] && printf '.%.0s' $(seq 1 $filled)
 echo -ne "${DIM}${RED}"
-printf 'X%.0s' $(seq 1 $empty 2>/dev/null)
+[ "$empty" -gt 0 ] && printf 'X%.0s' $(seq 1 $empty)
 echo -e "${RESET}${BOLD}] ${grand_done}/${grand_orig} (${gpct}%)${RESET}"
 echo ""
