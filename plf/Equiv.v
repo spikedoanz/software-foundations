@@ -117,6 +117,7 @@ Proof.
   intros st. simpl. lia.
 Qed.
 
+
 Theorem bequiv_example:
   bequiv
     <{ X - X = 0 }>
@@ -176,7 +177,12 @@ Theorem skip_right : forall c,
     <{ c; skip }>
     c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros c st st'.
+  split; intros H.
+  - (* -> *)
+    inversion H. subst.
+    inversion H2. subst.
+    assumption.
 (** [] *)
 
 (** Similarly, here is a simple equivalence that optimizes [if]
