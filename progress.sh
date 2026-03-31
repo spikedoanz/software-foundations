@@ -90,6 +90,59 @@ print_book() {
     grand_done=$((grand_done + total_done))
 }
 
+# Filter by argument: book name (lf, plf, vfa) or file path
+if [ -n "$1" ]; then
+    arg="$1"
+
+    # Check if it's a book name
+    case "$arg" in
+        lf)  print_book "lf" "Logical Foundations (Vol. 1)" "${LF_ORDER[@]}"; echo ""; exit 0 ;;
+        plf) print_book "plf" "Programming Language Foundations (Vol. 2)" "${PLF_ORDER[@]}"; echo ""; exit 0 ;;
+        vfa) print_book "vfa" "Verified Functional Algorithms (Vol. 3)" "${VFA_ORDER[@]}"; echo ""; exit 0 ;;
+    esac
+
+    # Otherwise treat as a file path
+    f="$arg"
+    [[ "$f" != *.v ]] && f="${f}.v"
+    [ ! -f "$f" ] && echo "File not found: $f" && exit 1
+
+    first_commit=$(git log --diff-filter=A --format="%H" -- "$f" | tail -1)
+    [ -z "$first_commit" ] && echo "No git history for $f" && exit 1
+
+    orig=$(git show "$first_commit:$f" 2>/dev/null | count_admitted)
+    orig=$((orig + 0))
+    now=$(count_admitted < "$f")
+    now=$((now + 0))
+    done=$((orig - now))
+    [ "$done" -lt 0 ] && done=0
+    remaining=$((orig - done))
+
+    chapter=$(basename "${f%.v}")
+
+    if [ "$orig" -eq 0 ]; then
+        echo -e "  ${chapter}: no exercises"
+        exit 0
+    fi
+
+    if [ "$done" -eq "$orig" ]; then
+        color="$GREEN"; tag="DONE"
+    elif [ "$done" -gt 0 ]; then
+        color="$YELLOW"; tag="${done}/${orig}"
+    else
+        color="$RED"; tag="${done}/${orig}"
+    fi
+
+    dots=""; crosses=""
+    [ "$done" -gt 0 ] && dots=$(printf '.%.0s' $(seq 1 $done))
+    [ "$remaining" -gt 0 ] && crosses=$(printf 'X%.0s' $(seq 1 $remaining))
+
+    echo ""
+    printf "  %-18s ${GREEN}%s${RED}%s${RESET}  ${color}(%s)${RESET}\n" \
+        "$chapter" "$dots" "$crosses" "$tag"
+    echo ""
+    exit 0
+fi
+
 echo ""
 echo -e "${BOLD}  Software Foundations Progress${RESET}"
 
